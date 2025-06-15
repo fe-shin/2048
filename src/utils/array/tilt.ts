@@ -1,29 +1,25 @@
-function tilt({
-  value,
-  direction,
-}: {
-  value: number[]
-  direction: 'R' | 'L'
-}): number[] {
-  if (direction === 'L') {
-    for (let i = 0; i < value.length; i++) {
-      if (value[i] === 0) {
-        value.splice(i, 1)
-        value.push(0)
-      }
+function tiltLeft({ value }: { value: number[] }): number[] {
+  let nonZeros = value.filter((n) => n !== 0)
+
+  for (let i = 0; i < nonZeros.length - 1; i++) {
+    if (nonZeros[i] === nonZeros[i + 1]) {
+      nonZeros[i] *= 2
+      nonZeros[i + 1] = 0
+      i++ // skip the next index to prevent double-merge
     }
-    // Sum up the matching numbers
-  } else {
-    for (let i = value.length - 1; i >= 0; i--) {
-      if (value[i] === 0) {
-        value.splice(i, 1)
-        value.unshift(0)
-      }
-    }
-    // Sum up the matching numbers
   }
 
-  return value
+  nonZeros = nonZeros.filter((n) => n !== 0)
+
+  while (nonZeros.length < value.length) {
+    nonZeros.push(0)
+  }
+
+  return nonZeros
 }
 
-export { tilt }
+function tiltRight({ value }: { value: number[] }): number[] {
+  return tiltLeft({ value: [...value].reverse() }).reverse()
+}
+
+export { tiltLeft, tiltRight }

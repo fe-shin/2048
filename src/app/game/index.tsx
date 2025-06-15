@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Cube } from './cube'
+import { tiltLeft, tiltRight } from '../../utils/array/tilt'
 
 interface Props {
   className?: string
 }
 
 function Game({ className }: Props) {
-  const [cubes, SetCubes] = useState(
+  const [cubes, setCubes] = useState(
     Array.from({ length: 4 }, () => [0, 0, 0, 0]),
   )
 
@@ -17,7 +18,7 @@ function Game({ className }: Props) {
       colRand = Math.floor(Math.random() * 4)
     } while (cubes[rowRand][colRand] !== 0)
 
-    SetCubes((prevCubes) => {
+    setCubes((prevCubes) => {
       const newCubes = [...prevCubes]
       newCubes[rowRand][colRand] = Math.random() < 0.9 ? 2 : 4
       return newCubes
@@ -25,7 +26,6 @@ function Game({ className }: Props) {
   }, [cubes])
 
   useEffect(() => {
-    console.log('Filling a random empty cube')
     fillARandomEmptyCube()
   }, [])
 
@@ -39,27 +39,65 @@ function Game({ className }: Props) {
       ) {
         event.preventDefault()
 
-        if (event.key == 'ArrowUp') {
-          SetCubes((prevCubes) => {
+        if (event.key == 'ArrowUp' || event.key == 'ArrowDown') {
+          setCubes((prevCubes) => {
             const newCubes = [...prevCubes]
 
-            for (let colIndex = 0; colIndex < 4; colIndex++) {
+            for (let colIndex = 0; colIndex < newCubes.length; colIndex++) {
               const colValues = []
-              for (let rowIndex = 0; rowIndex < 4; rowIndex++) {
+              for (let rowIndex = 0; rowIndex < newCubes.length; rowIndex++) {
                 colValues.push(newCubes[rowIndex][colIndex])
+              }
+              const newColValues =
+                event.key === 'ArrowUp'
+                  ? tiltLeft({
+                      value: [...colValues],
+                    })
+                  : tiltRight({
+                      value: [...colValues],
+                    })
+
+              for (let rowIndex = 0; rowIndex < newCubes.length; rowIndex++) {
+                newCubes[rowIndex][colIndex] = newColValues[rowIndex]
               }
             }
 
             return newCubes
           })
         }
+
+        if (event.key == 'ArrowLeft' || event.key == 'ArrowRight') {
+          setCubes((prevCubes) => {
+            const newCubes = [...prevCubes]
+
+            for (let rowIndex = 0; rowIndex < newCubes.length; rowIndex++) {
+              const rowValues = [...newCubes[rowIndex]]
+
+              const newRowValues =
+                event.key === 'ArrowLeft'
+                  ? tiltLeft({
+                      value: [...rowValues],
+                    })
+                  : tiltRight({
+                      value: [...rowValues],
+                    })
+
+              newCubes[rowIndex] = newRowValues
+            }
+
+            return newCubes
+          })
+        }
+
+        fillARandomEmptyCube()
       }
     }
+
     window.addEventListener('keydown', handleKeyDown)
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [])
+  }, [cubes, fillARandomEmptyCube])
 
   return (
     <div className={className}>
